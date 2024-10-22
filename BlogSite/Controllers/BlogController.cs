@@ -2,7 +2,9 @@
 using BlogSite.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace BlogSite.Controllers;
 
@@ -53,11 +55,20 @@ public class BlogController : Controller
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Title,Content,CreatedAt")] BlogPost blogPost)
+    public async Task<IActionResult> Create([Bind("Id,Title,Content")] BlogPost blogPost)
     {
+        if (ModelState.ContainsKey("CreatedBy"))
+        {
+            // Remove validation errors related to CreatedBy, if any
+            ModelState["CreatedBy"].Errors.Clear();
+            ModelState["CreatedBy"].ValidationState = ModelValidationState.Valid;
+        }
         if (ModelState.IsValid)
         {
-            blogPost.CreatedAt = DateTime.Now; // Set created date
+            // Set the CreatedAt and CreatedBy properties
+            blogPost.CreatedAt = DateTime.Now;
+            blogPost.CreatedBy = User.FindFirstValue(ClaimTypes.NameIdentifier); // Get the logged-in user's ID
+
             _context.Add(blogPost);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -65,7 +76,7 @@ public class BlogController : Controller
         return View(blogPost);
     }
 
-    // GET: BlogPosts/Edit/5
+    // POST: BlogPosts/Edit/5
     [Authorize]
     public async Task<IActionResult> Edit(int? id)
     {
@@ -79,10 +90,16 @@ public class BlogController : Controller
         {
             return NotFound();
         }
+
+        // Check if the current user is the creator of the post
+        if (blogPost.CreatedBy != User.FindFirstValue(ClaimTypes.NameIdentifier))
+        {
+            return Forbid(); // Return 403 Forbidden if the user is not the creator
+        }
+
         return View(blogPost);
     }
 
-    // POST: BlogPosts/Edit/5
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
@@ -91,6 +108,20 @@ public class BlogController : Controller
         if (id != blogPost.Id)
         {
             return NotFound();
+        }
+        var postCreatedBy = (await _context.BlogPosts.AsNoTracking().FirstAsync(x => x.Id == id)).CreatedBy;
+        // Check if the current user is the creator of the post
+        if (postCreatedBy != User.FindFirstValue(ClaimTypes.NameIdentifier))
+        {
+            return Forbid();
+        }
+        blogPost.CreatedBy = postCreatedBy;
+
+        if (ModelState.ContainsKey("CreatedBy"))
+        {
+            // Remove validation errors related to CreatedBy, if any
+            ModelState["CreatedBy"].Errors.Clear();
+            ModelState["CreatedBy"].ValidationState = ModelValidationState.Valid;
         }
 
         if (ModelState.IsValid)
@@ -116,7 +147,7 @@ public class BlogController : Controller
         return View(blogPost);
     }
 
-    // GET: BlogPosts/Delete/5
+
     [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
@@ -132,20 +163,33 @@ public class BlogController : Controller
             return NotFound();
         }
 
+        // Check if the current user is the creator of the post
+        if (blogPost.CreatedBy != User.FindFirstValue(ClaimTypes.NameIdentifier))
+        {
+            return Forbid();
+        }
+
         return View(blogPost);
     }
 
-    // POST: BlogPosts/Delete/5
     [HttpPost, ActionName("DeleteConfirmed")]
     [Authorize]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var blogPost = await _context.BlogPosts.FindAsync(id);
+
+        // Check if the current user is the creator of the post
+        if (blogPost.CreatedBy != User.FindFirstValue(ClaimTypes.NameIdentifier))
+        {
+            return Forbid();
+        }
+
         _context.BlogPosts.Remove(blogPost);
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
+
 
     private bool BlogPostExists(int id)
     {
