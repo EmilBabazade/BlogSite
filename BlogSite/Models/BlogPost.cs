@@ -14,5 +14,6 @@ public class BlogPost
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public string CreatedBy { get; set; }
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }
 

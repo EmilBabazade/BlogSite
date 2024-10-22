@@ -35,6 +35,7 @@ public class BlogController : Controller
         }
 
         var blogPost = await _context.BlogPosts
+            .Include(b => b.Comments)
             .FirstOrDefaultAsync(m => m.Id == id);
         if (blogPost == null)
         {

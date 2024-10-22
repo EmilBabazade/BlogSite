@@ -9,5 +9,6 @@ public class BlogContext : IdentityDbContext
     public BlogContext(DbContextOptions<BlogContext> options) : base(options) { }
 
     public DbSet<BlogPost> BlogPosts { get; set; }
+    public DbSet<Comment> Comments { get; set; } // Add this line
 
 }
