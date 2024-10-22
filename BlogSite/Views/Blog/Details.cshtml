@@ -1,0 +1,22 @@
+﻿@model BlogSite.Models.BlogPost
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container">
+    <h1>@Model.Title</h1>
+    <p><small>Published on @Model.CreatedAt.ToString("MMMM dd, yyyy")</small></p>
+
+    <hr />
+
+    <div class="content">
+        <p>@Model.Content</p>
+    </div>
+
+    <hr />
+
+    <div class="back-to-list">
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>

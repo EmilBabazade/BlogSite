@@ -1,9 +1,12 @@
 ﻿using BlogSite.Data;
 using BlogSite.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogSite.Controllers;
+
+[Authorize]
 public class BlogController : Controller
 {
     private readonly BlogContext _context;
@@ -14,12 +17,14 @@ public class BlogController : Controller
     }
 
     // GET: BlogPosts
+    [AllowAnonymous]
     public async Task<IActionResult> Index()
     {
         return View(await _context.BlogPosts.ToListAsync());
     }
 
     // GET: BlogPosts/Details/5
+    [AllowAnonymous]
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -38,6 +43,7 @@ public class BlogController : Controller
     }
 
     // GET: BlogPosts/Create
+    [Authorize]
     public IActionResult Create()
     {
         return View();
@@ -45,6 +51,7 @@ public class BlogController : Controller
 
     // POST: BlogPosts/Create
     [HttpPost]
+    [Authorize]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Title,Content,CreatedAt")] BlogPost blogPost)
     {
@@ -59,6 +66,7 @@ public class BlogController : Controller
     }
 
     // GET: BlogPosts/Edit/5
+    [Authorize]
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
@@ -76,6 +84,7 @@ public class BlogController : Controller
 
     // POST: BlogPosts/Edit/5
     [HttpPost]
+    [Authorize]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,CreatedAt")] BlogPost blogPost)
     {
@@ -108,6 +117,7 @@ public class BlogController : Controller
     }
 
     // GET: BlogPosts/Delete/5
+    [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
@@ -127,6 +137,7 @@ public class BlogController : Controller
 
     // POST: BlogPosts/Delete/5
     [HttpPost, ActionName("DeleteConfirmed")]
+    [Authorize]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {

@@ -1,9 +1,10 @@
 ﻿using BlogSite.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogSite.Data;
 
-public class BlogContext : DbContext
+public class BlogContext : IdentityDbContext
 {
     public BlogContext(DbContextOptions<BlogContext> options) : base(options) { }
 
